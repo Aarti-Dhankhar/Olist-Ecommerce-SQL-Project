@@ -42,9 +42,19 @@ FROM orders o JOIN order_payments p ON o.order_id = p.order_id
 GROUP BY o.customer_id ) AS customer_spending;
 
 -- Q9. Find the customers whose spending is above the average customer spending?
-SELECT o.customer_id , SUM(p.payment_value) AS total_spending
-FROM orders o JOIN order_payments p ON o.order_id = p.order_id GROUP BY
-o.customer_id HAVING SUM(p.payment_value) > (SELECT AVG(payment_value) FROM order_payments)
+SELECT o.customer_id, SUM(p.payment_value) AS total_spending
+FROM orders o
+JOIN order_payments p ON o.order_id = p.order_id
+GROUP BY o.customer_id
+HAVING SUM(p.payment_value) > (
+    SELECT AVG(total_spending)
+    FROM (
+        SELECT o2.customer_id, SUM(p2.payment_value) AS total_spending
+        FROM orders o2
+        JOIN order_payments p2 ON o2.order_id = p2.order_id
+        GROUP BY o2.customer_id
+    ) AS customer_spending
+)
 ORDER BY total_spending DESC;
 
 -- Product & Category Analysis
@@ -107,9 +117,10 @@ SELECT payment_type , AVG(payment_value) AS average_order_value FROM order_payme
 GROUP BY payment_type ORDER BY average_order_value DESC;
 
 -- Delivery/ Operational Analysis
--- Q21. What is the average delivery time for order?
+-- Q21. What is the average delivery time per order?
 SELECT AVG(TIMESTAMPDIFF(DAY, order_purchase_timestamp, order_delivered_customer_date)) AS average_delivery_days
-FROM orders WHERE order_delivered_customer_date IS NOT NULL;
+FROM orders
+WHERE order_delivered_customer_date IS NOT NULL;
 
 -- Q22. Which customer states have the longest average delivery time?
 SELECT c.customer_state, AVG(TIMESTAMPDIFF(DAY, o.order_purchase_timestamp, o.order_delivered_customer_date)) AS average_delivery_days
