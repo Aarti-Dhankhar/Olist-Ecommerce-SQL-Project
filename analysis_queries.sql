@@ -6,8 +6,10 @@ SELECT (SELECT COUNT(order_id) FROM orders) AS total_orders,
 (SELECT COUNT(seller_id) FROM sellers) AS total_sellers;
 
 -- Q2. What is total revenue and average order value?
-SELECT SUM(payment_value) AS total_revenue,
-AVG(payment_value) AS average_order_value FROM order_payments;
+SELECT 
+    SUM(payment_value) AS total_revenue,
+    SUM(payment_value) / COUNT(DISTINCT order_id) AS average_order_value
+FROM order_payments;
 
 -- Q3. What are the different order statuses and how many orders are in each status?
 SELECT order_status , COUNT(order_id) AS total_orders FROM orders 
@@ -58,7 +60,7 @@ HAVING SUM(p.payment_value) > (
 ORDER BY total_spending DESC;
 
 -- Product & Category Analysis
--- Q10. What are the top 10 best-selling products by quantity?
+-- Q10. What are the top 10 best-selling products by number of order items?
 SELECT p.product_id , p.product_category_name , COUNT(*) AS total_sold 
 FROM order_items oi JOIN products p ON oi.product_id = p.product_id 
 GROUP BY p.product_id , p.product_category_name 
