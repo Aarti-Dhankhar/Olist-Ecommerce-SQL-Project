@@ -141,9 +141,19 @@ RANK() OVER (ORDER BY SUM(p.payment_value) DESC) AS customer_rank FROM orders o 
 ON o.order_id = p.order_id GROUP BY o.customer_id 
 ORDER BY customer_rank;
 
--- Q25. Identify high-value customers-customers whosw spending is above the 99th percentile?
-SELECT customer_id , total_spending FROM (SELECT o.customer_id  , SUM(p.payment_value) AS total_spending , 
-PERCENT_RANK() OVER ( ORDER BY SUM(p.payment_value)) AS spending_percentile
-FROM orders o JOIN order_payments p ON o.order_id = p.order_id GROUP BY o.customer_id)
-AS customer_spending WHERE spending_percentile >= 0.99 
+-- Q25. Identify high-value customers whose spending is above the 99th percentile?
+SELECT customer_id,
+       total_spending
+FROM (
+    SELECT o.customer_id,
+           SUM(p.payment_value) AS total_spending,
+           NTILE(100) OVER (
+               ORDER BY SUM(p.payment_value) DESC
+           ) AS spending_percentile
+    FROM orders o
+    JOIN order_payments p
+        ON o.order_id = p.order_id
+    GROUP BY o.customer_id
+) AS customer_spending
+WHERE spending_percentile = 1
 ORDER BY total_spending DESC;
